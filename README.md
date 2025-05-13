@@ -73,3 +73,13 @@ pca-image-compressor/
 │ └── download.html    # Download preview page
 └── README.md
 ```
+# **Future Improvements**
+
+- Make an option for svd based compression
+- Make an option for grayscale images
+- Make a night mode toggle
+- Drag Drop upload
+- Compression metric
+- Compression progress bar / loading bar
+- Eventual online deployment
+  
