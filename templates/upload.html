@@ -1,27 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload Image</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 100vh;">
-        <div class="card shadow p-4" style="width: 100%; max-width: 500px;">
-            <h3 class="mb-3 text-center">PCA Image Compressor</h3>
-            <form action="/" method="POST" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <input class="form-control" type="file" name="image" required>
-                </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Upload & Compress</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,6 +36,25 @@
       <form action="/" method="POST" enctype="multipart/form-data">
         <input class="form-control" type="file" name="image" id="imageInput" required />
         <img id="preview" class="upload-preview" />
+
+        
+            <div class="mt-4">
+            <label for="compressionLevel">Select Compression Level:</label><br>
+            <div>
+                <input type="radio" id="high" name="compression_level" value="25" checked />
+                <label for="high">Low Compression (Higher Quality)</label>
+            </div>
+            <div>
+                <input type="radio" id="medium" name="compression_level" value="50" />
+                <label for="medium">Medium Compression</label>
+            </div>
+            <div>
+                <input type="radio" id="low" name="compression_level" value="75" />
+                <label for="low">High Compression (Lower Quality)</label>
+            </div>
+            </div>
+
+
         <div class="d-grid mt-4">
           <button type="submit" class="btn btn-primary btn-lg">Compress & Continue</button>
         </div>
