@@ -5,7 +5,8 @@ import cv2
 from sklearn.decomposition import PCA
 
 app = Flask(__name__)
-os.makedirs('static', exist_ok=True)  
+
+os.makedirs('static', exist_ok=True)
 app.config['UPLOAD_FOLDER'] = 'static'
 
 def compress_image_pca(image, num_components = 50):
@@ -20,34 +21,34 @@ def compress_image_pca(image, num_components = 50):
 
     return final_image
 
-
 @app.route('/', methods=['GET', 'POST'])
 def upload_image():
     if request.method == 'POST':
+
+        compression_level = int(request.form['compression_level'])
+
         file = request.files['image']
-        if file:
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'uploaded.png')
-            file.save(filepath)
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'uploaded.png')
+        file.save(image_path)
 
-            image = cv2.imread(filepath)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.imread(image_path)
+        compressed_image = compress_image_pca(image, num_components=compression_level)
 
-            compressed = compress_image_pca(image)
+        compressed_path = os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png')
+        cv2.imwrite(compressed_path, compressed_image)
 
-            compressed_bgr = cv2.cvtColor(compressed, cv2.COLOR_RGB2BGR)
-            compressed_path = os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png')
-            cv2.imwrite(compressed_path, compressed_bgr)
+        return redirect(url_for('download_file'))
 
-            return redirect(url_for('download_image'))
     return render_template('upload.html')
-
-@app.route('/download')
-def download_image():
-    return render_template('download.html')
 
 @app.route('/download_file')
 def download_file():
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png'), as_attachment=True, download_name='compressed.png')
+    return render_template('download.html')
+
+@app.route('/serve_file')
+def serve_file():
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png')
+    return send_file(file_path, as_attachment=True, download_name='compressed.png')
 
 if __name__ == '__main__':
     app.run(debug=True)
