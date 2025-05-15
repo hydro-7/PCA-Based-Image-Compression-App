@@ -22,7 +22,7 @@ def compress_image_pca(image, num_components = 50):
     return final_image
 
 @app.route('/', methods=['GET', 'POST'])
-def upload_image():
+def upload_image():     
     if request.method == 'POST':
 
         compression_level = int(request.form['compression_level'])
