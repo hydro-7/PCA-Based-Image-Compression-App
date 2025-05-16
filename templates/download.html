@@ -5,7 +5,6 @@
   <title>Download Compressed Image</title>
 
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='wave-icon.jpg') }}">
-  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
@@ -20,7 +19,6 @@
       border: none;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      transition: background-color 0.3s, color 0.3s;
     }
 
     .btn-primary {
@@ -51,7 +49,7 @@
       cursor: pointer;
     }
 
-    /* Dark Mode Styles */
+    /* Dark Mode */
     body.dark-mode {
       background-color: #121212 !important;
       color: #e0e0e0 !important;
@@ -85,22 +83,20 @@
   </div>
 
   <script>
-    const modeToggle = document.getElementById('modeToggle');
+    const modeToggle = document.getElementById("modeToggle");
 
     function setTheme(mode) {
-      document.body.classList.toggle('dark-mode', mode === 'dark');
-      localStorage.setItem('theme', mode);
-      modeToggle.textContent = mode === 'dark' ? '☀️' : '🌙';
+      document.body.classList.toggle("dark-mode", mode === "dark");
+      localStorage.setItem("theme", mode);
+      modeToggle.textContent = mode === "dark" ? "☀️" : "🌙";
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      setTheme(savedTheme);
-    });
+    const saved = localStorage.getItem("theme") || "light";
+    setTheme(saved);
 
-    modeToggle.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('dark-mode');
-      setTheme(isDark ? 'light' : 'dark');
+    modeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.contains("dark-mode");
+      setTheme(isDark ? "light" : "dark");
     });
   </script>
 </body>

@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function setTheme(mode) {
     document.body.classList.toggle("dark-mode", mode === "dark");
     localStorage.setItem("theme", mode);
+    toggleBtn.textContent = mode === "dark" ? "☀️" : "🌙";
   }
 
   const saved = localStorage.getItem("theme") || "light";
