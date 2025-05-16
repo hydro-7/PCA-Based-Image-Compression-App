@@ -22,8 +22,31 @@ def compress_image_pca(image, num_components=50):
     final_image = (cv2.merge((r, g, b)))
     final_image = np.clip(final_image * 255, 0, 255).astype(np.uint8)
 
+    # quality = 90
+    # encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+    # _, encoded_img = cv2.imencode('.jpg', final_image, encode_param)
+    # decoded_img = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
+
+    # return decoded_img
     return final_image
 
+def compress_image_svd(image, num_components=50):
+    b, g, r = cv2.split(image)
+
+    U_R, S_R, Vt_R = np.linalg.svd(r, full_matrices=False)
+    U_G, S_G, Vt_G = np.linalg.svd(g, full_matrices=False)
+    U_B, S_B, Vt_B = np.linalg.svd(b, full_matrices=False)
+
+    n = num_components  # rank approximation parameter
+    R_compressed = np.matrix(U_R[:, :n]) * np.diag(S_R[:n]) * np.matrix(Vt_R[:n, :])
+    G_compressed = np.matrix(U_G[:, :n]) * np.diag(S_G[:n]) * np.matrix(Vt_G[:n, :])
+    B_compressed = np.matrix(U_B[:, :n]) * np.diag(S_B[:n]) * np.matrix(Vt_B[:n, :])
+
+    compressed_image = cv2.merge([np.clip(R_compressed, 1, 255), np.clip(G_compressed, 1, 255), np.clip(B_compressed, 1, 255)])
+    compressed_image = compressed_image.astype(np.uint8)
+
+    return compressed_image
+    
 @app.route('/', methods=['GET', 'POST'])
 def upload_image():
     return render_template('upload.html')
