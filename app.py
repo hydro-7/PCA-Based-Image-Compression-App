@@ -1,17 +1,62 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, send_file, session
-import numpy as np
+import uuid
 import cv2
+import numpy as np
+from flask import Flask, render_template, request, redirect, url_for, send_file, session
+from PIL import Image
 from sklearn.decomposition import PCA
 
 app = Flask(__name__)
-app.secret_key = 'secret_key'  # Required for session
+app.secret_key = 'your_secret_key'
 
 UPLOAD_FOLDER = 'static'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+def convert_to_jpg(image_path):
+    ext = os.path.splitext(image_path)[1].lower()
+    if ext not in ['.jpg', '.jpeg']:
+        im = Image.open(image_path).convert("RGB")
+        new_path = os.path.splitext(image_path)[0] + ".jpg"
+        im.save(new_path, "JPEG")
+        os.remove(image_path)
+        return new_path
+    return image_path
+
+# Fourier Transform
+def compress_channel(channel_data, keep_ratio=0.05):
+    f_transform = np.fft.fft2(channel_data)
+    f_shifted = np.fft.fftshift(f_transform)
+
+    magnitude = np.abs(f_shifted)
+    threshold = np.percentile(magnitude, (1 - keep_ratio) * 100)
+    mask = magnitude > threshold
+    f_compressed = f_shifted * mask
+
+    f_ishifted = np.fft.ifftshift(f_compressed)
+    img_reconstructed = np.fft.ifft2(f_ishifted)
+    return np.abs(img_reconstructed)
+
+
+def compress_image_fourier(image):
+
+    keep_ratio = 0.05  # Keep top 5% frequencies
+    compressed_channels = []
+    img_array = np.array(image)
+
+    for i in range(3):  # R, G, B
+        channel = img_array[:, :, i]
+        compressed = compress_channel(channel, keep_ratio)
+        compressed_channels.append(compressed)
+
+    compressed_img = np.stack(compressed_channels, axis=2)
+    image = np.clip(compressed_img, 0, 255).astype(np.uint8)
+
+    return image
+
+
 def compress_image_pca(image, num_components=50):
+
     r, g, b = cv2.split(image)
     r, g, b = r / 255, g / 255, b / 255
 
@@ -22,13 +67,12 @@ def compress_image_pca(image, num_components=50):
     final_image = (cv2.merge((r, g, b)))
     final_image = np.clip(final_image * 255, 0, 255).astype(np.uint8)
 
-    # quality = 90
-    # encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-    # _, encoded_img = cv2.imencode('.jpg', final_image, encode_param)
-    # decoded_img = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
+    quality = 10
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+    _, encoded_img = cv2.imencode('.jpg', final_image, encode_param)
+    decoded_img = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
 
-    # return decoded_img
-    return final_image
+    return decoded_img
 
 def compress_image_svd(image, num_components=50):
     b, g, r = cv2.split(image)
@@ -46,7 +90,7 @@ def compress_image_svd(image, num_components=50):
     compressed_image = compressed_image.astype(np.uint8)
 
     return compressed_image
-    
+
 @app.route('/', methods=['GET', 'POST'])
 def upload_image():
     return render_template('upload.html')
@@ -56,11 +100,15 @@ def loading():
     file = request.files['image']
     compression_level = int(request.form['compression_level'])
 
-    image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'uploaded.png')
+    filename = f"uploaded_{uuid.uuid4().hex}.png"
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(image_path)
 
+    # Convert to JPG if not already
+    jpg_path = convert_to_jpg(image_path)
+
     session['compression_level'] = compression_level
-    session['image_path'] = image_path
+    session['image_path'] = jpg_path
 
     return render_template('loading.html')
 
@@ -83,7 +131,7 @@ def download_file():
 @app.route('/serve_file')
 def serve_file():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png')
-    return send_file(file_path, as_attachment=True, download_name='compressed.png')
+    return send_file(file_path, as_attachment=True, download_name='compressed.jpg')
 
 if __name__ == '__main__':
     app.run(debug=True)
