@@ -37,7 +37,8 @@ pca-image-compressor/
 │ ├── wave-icon.jpg    # Favicon image
 │ └── compressed.png   # Resulting compressed image
 ├── templates/
-│ ├── upload.html      
+│ ├── upload.html
+│ ├── loading.html
 │ └── download.html    
 └── README.md
 ```
