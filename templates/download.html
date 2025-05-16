@@ -5,6 +5,7 @@
   <title>Download Compressed Image</title>
 
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='wave-icon.jpg') }}">
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
@@ -13,12 +14,14 @@
       font-family: 'Inter', sans-serif;
       color: #212529;
       transition: background-color 0.3s, color 0.3s;
+      padding-top: 3.5rem; /* leave space for navbar */
     }
 
     .card {
       border: none;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .btn-primary {
@@ -36,10 +39,32 @@
       color: #6c757d !important;
     }
 
-    .theme-toggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
+    /* Navbar */
+    nav.navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3.5rem;
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      z-index: 1050;
+      justify-content: space-between;
+    }
+
+    nav.navbar a.home-btn {
+      font-size: 1.5rem;
+      text-decoration: none;
+      color: #212529;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    nav.navbar a.home-btn:hover {
+      color: #0d6efd; /* bootstrap primary color */
     }
 
     .theme-toggle button {
@@ -47,9 +72,14 @@
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      padding: 0;
+      line-height: 1;
     }
 
-    /* Dark Mode */
+    /* Dark Mode Styles */
     body.dark-mode {
       background-color: #121212 !important;
       color: #e0e0e0 !important;
@@ -63,13 +93,26 @@
     body.dark-mode .btn-primary {
       background-color: #444;
     }
+
+    body.dark-mode nav.navbar {
+      background-color: #222;
+      box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+    }
+
+    body.dark-mode nav.navbar a.home-btn:hover {
+      color: #66aaff;
+    }
   </style>
 </head>
 <body>
-  <!-- Theme Toggle -->
-  <div class="theme-toggle">
-    <button id="modeToggle">🌙</button>
-  </div>
+  <!-- Navbar with Home button on left and theme toggle on right -->
+  <nav class="navbar">
+    <a href="{{ url_for('upload_image') }}" class="home-btn" title="Home">🏠</a>
+
+    <div class="theme-toggle">
+      <button id="modeToggle" aria-label="Toggle theme">🌙</button>
+    </div>
+  </nav>
 
   <div class="container d-flex align-items-center justify-content-center min-vh-100">
     <div class="card p-4 w-100" style="max-width: 600px;">
@@ -83,20 +126,22 @@
   </div>
 
   <script>
-    const modeToggle = document.getElementById("modeToggle");
+    const modeToggle = document.getElementById('modeToggle');
 
     function setTheme(mode) {
-      document.body.classList.toggle("dark-mode", mode === "dark");
-      localStorage.setItem("theme", mode);
-      modeToggle.textContent = mode === "dark" ? "☀️" : "🌙";
+      document.body.classList.toggle('dark-mode', mode === 'dark');
+      localStorage.setItem('theme', mode);
+      modeToggle.textContent = mode === 'dark' ? '☀️' : '🌙';
     }
 
-    const saved = localStorage.getItem("theme") || "light";
-    setTheme(saved);
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      setTheme(savedTheme);
+    });
 
-    modeToggle.addEventListener("click", () => {
-      const isDark = document.body.classList.contains("dark-mode");
-      setTheme(isDark ? "light" : "dark");
+    modeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.contains('dark-mode');
+      setTheme(isDark ? 'light' : 'dark');
     });
   </script>
 </body>

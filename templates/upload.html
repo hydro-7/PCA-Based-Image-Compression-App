@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image Compressor</title>
-
+  
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='wave-icon.jpg') }}">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
@@ -14,12 +15,14 @@
       background-color: #f8f9fa;
       color: #212529;
       transition: background-color 0.3s, color 0.3s;
+      padding-top: 3.5rem; /* space for fixed navbar */
     }
 
     .card {
       border: none;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .btn-primary {
@@ -38,10 +41,21 @@
       color: #6c757d !important;
     }
 
-    .theme-toggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
+    /* Navbar */
+    nav.navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3.5rem;
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      z-index: 1050;
+      justify-content: flex-end; /* only toggle button on right */
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .theme-toggle button {
@@ -49,25 +63,15 @@
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-    }
-
-    /* Loading Overlay - HIDDEN BY DEFAULT */
-    #loadingOverlay {
-      display: none; /* Make sure it's hidden initially */
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      z-index: 1000;
+      display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      font-weight: 600;
+      height: 100%;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.3s;
     }
 
-    /* Dark Mode */
+    /* Dark Mode Styles */
     body.dark-mode {
       background-color: #121212 !important;
       color: #e0e0e0 !important;
@@ -78,20 +82,24 @@
       color: #e0e0e0;
     }
 
-    body.dark-mode #loadingOverlay {
-      background: rgba(18, 18, 18, 0.9);
-      color: #fff;
+    body.dark-mode nav.navbar {
+      background-color: #222;
+      box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .theme-toggle button {
+      color: #e0e0e0;
     }
   </style>
 </head>
 <body>
-  <!-- Theme Toggle -->
-  <div class="theme-toggle">
-    <button id="modeToggle">🌙</button>
-  </div>
-
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay">⏳ Compressing image...</div>
+  <!-- Navbar with only theme toggle -->
+  <nav class="navbar">
+    <div class="theme-toggle">
+      <button id="modeToggle" aria-label="Toggle theme">🌙</button>
+    </div>
+  </nav>
 
   <div class="container d-flex align-items-center justify-content-center min-vh-100">
     <div class="card p-4 w-100" style="max-width: 500px;">
@@ -127,43 +135,37 @@
   </div>
 
   <script>
-    const imageInput = document.getElementById("imageInput");
-    const preview = document.getElementById("preview");
-    const loadingOverlay = document.getElementById("loadingOverlay");
+    // Image preview
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
 
-    // Preview image on file select
-    imageInput.addEventListener("change", () => {
-      const file = imageInput.files[0];
+    imageInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
       if (file) {
         preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
-      } else {
-        preview.style.display = "none";
+        preview.style.display = 'block';
       }
     });
 
     // Theme toggle logic
-    const modeToggle = document.getElementById("modeToggle");
+    const modeToggle = document.getElementById('modeToggle');
+
     function setTheme(mode) {
-      document.body.classList.toggle("dark-mode", mode === "dark");
-      localStorage.setItem("theme", mode);
-      modeToggle.textContent = mode === "dark" ? "☀️" : "🌙";
+      document.body.classList.toggle('dark-mode', mode === 'dark');
+      localStorage.setItem('theme', mode);
+      modeToggle.textContent = mode === 'dark' ? '☀️' : '🌙';
     }
 
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme);
-
-    modeToggle.addEventListener("click", () => {
-      const isDark = document.body.classList.contains("dark-mode");
-      setTheme(isDark ? "light" : "dark");
+    // Load saved theme
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      setTheme(savedTheme);
     });
 
-    // Show loading only when a file is selected on submit
-    const uploadForm = document.getElementById("uploadForm");
-    uploadForm.addEventListener("submit", (e) => {
-      if (imageInput.files.length > 0) {
-        loadingOverlay.style.display = "flex"; // Show overlay ONLY if a file is selected
-      }
+    // Toggle theme on button click
+    modeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.contains('dark-mode');
+      setTheme(isDark ? 'light' : 'dark');
     });
   </script>
 </body>
