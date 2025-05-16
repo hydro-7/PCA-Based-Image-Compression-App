@@ -4,129 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image Compressor</title>
-  
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='wave-icon.jpg') }}">
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f8f9fa;
-      color: #212529;
-      transition: background-color 0.3s, color 0.3s;
-      padding-top: 3.5rem; /* space for fixed navbar */
-    }
-
-    .card {
-      border: none;
-      border-radius: 1rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .btn-primary {
-      border-radius: 0.5rem;
-    }
-
-    .upload-preview {
-      max-width: 100%;
-      max-height: 250px;
-      border-radius: 0.5rem;
-      margin-top: 1rem;
-      display: none;
-    }
-
-    .text-muted-light {
-      color: #6c757d !important;
-    }
-
-    /* Navbar */
-    nav.navbar {
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3.5rem;
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      z-index: 1050;
-      justify-content: flex-end; /* only toggle button on right */
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .theme-toggle button {
-      background: transparent;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      height: 100%;
-      padding: 0;
-      line-height: 1;
-      transition: color 0.3s;
-    }
-
-    /* Dark Mode Styles */
-    body.dark-mode {
-      background-color: #121212 !important;
-      color: #e0e0e0 !important;
-    }
-
-    body.dark-mode .card {
-      background-color: #1e1e1e;
-      color: #e0e0e0;
-    }
-
-    body.dark-mode nav.navbar {
-      background-color: #222;
-      box-shadow: 0 2px 4px rgba(255,255,255,0.1);
-      color: #e0e0e0;
-    }
-
-    body.dark-mode .theme-toggle button {
-      color: #e0e0e0;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <!-- Navbar with only theme toggle -->
-  <nav class="navbar">
-    <div class="theme-toggle">
-      <button id="modeToggle" aria-label="Toggle theme">🌙</button>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-light border-bottom shadow-sm px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">🏠</a>
+      <button id="modeToggle" class="btn border-0 fs-4">🌙</button>
     </div>
   </nav>
 
+  <!-- Upload Form -->
   <div class="container d-flex align-items-center justify-content-center min-vh-100">
     <div class="card p-4 w-100" style="max-width: 500px;">
       <h2 class="mb-3 text-center">Image Compressor</h2>
-      <p class="text-center mb-4 text-muted text-muted-light">
+      <p class="text-center mb-4 text-description">
         Upload an image (.png) and compress it using Principal Component Analysis
       </p>
-      <form action="/" method="POST" enctype="multipart/form-data" id="uploadForm">
+      <form action="/loading" method="POST" enctype="multipart/form-data">
         <input class="form-control" type="file" name="image" id="imageInput" required />
         <img id="preview" class="upload-preview" />
-
         <div class="mt-4">
           <label for="compressionLevel">Select Compression Level:</label><br>
-          <div>
-            <input type="radio" id="high" name="compression_level" value="25" checked />
-            <label for="high">High Compression (Lower Quality)</label>
-          </div>
-          <div>
-            <input type="radio" id="medium" name="compression_level" value="50" />
-            <label for="medium">Medium Compression</label>
-          </div>
-          <div>
-            <input type="radio" id="low" name="compression_level" value="75" />
-            <label for="low">Low Compression (Higher Quality)</label>
-          </div>
+          <div><input type="radio" id="high" name="compression_level" value="25" checked /><label for="high"> High (Low Quality)</label></div>
+          <div><input type="radio" id="medium" name="compression_level" value="50" /><label for="medium"> Medium</label></div>
+          <div><input type="radio" id="low" name="compression_level" value="75" /><label for="low"> Low (High Quality)</label></div>
         </div>
-
         <div class="d-grid mt-4">
           <button type="submit" class="btn btn-primary btn-lg">Compress & Continue</button>
         </div>
@@ -134,39 +41,6 @@
     </div>
   </div>
 
-  <script>
-    // Image preview
-    const imageInput = document.getElementById('imageInput');
-    const preview = document.getElementById('preview');
-
-    imageInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = 'block';
-      }
-    });
-
-    // Theme toggle logic
-    const modeToggle = document.getElementById('modeToggle');
-
-    function setTheme(mode) {
-      document.body.classList.toggle('dark-mode', mode === 'dark');
-      localStorage.setItem('theme', mode);
-      modeToggle.textContent = mode === 'dark' ? '☀️' : '🌙';
-    }
-
-    // Load saved theme
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      setTheme(savedTheme);
-    });
-
-    // Toggle theme on button click
-    modeToggle.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('dark-mode');
-      setTheme(isDark ? 'light' : 'dark');
-    });
-  </script>
+  <script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>
 </html>
