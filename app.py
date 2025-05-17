@@ -7,7 +7,7 @@ from PIL import Image
 from sklearn.decomposition import PCA
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'your_secret_key'            # Necessary for app to function
 
 UPLOAD_FOLDER = 'static'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
