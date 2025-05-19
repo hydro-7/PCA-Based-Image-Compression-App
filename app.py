@@ -7,23 +7,26 @@ from PIL import Image
 from sklearn.decomposition import PCA
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'            # Necessary for app to function
+app.secret_key = 'your_secret_key'                                      # This is necessary for the app to work : Protects user session data
 
 UPLOAD_FOLDER = 'static'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER                             # Defined path from where the uploads can be accessed
 
+
+# Converts a given image path from .png/.webp to .jpg
 def convert_to_jpg(image_path):
-    ext = os.path.splitext(image_path)[1].lower()
-    if ext not in ['.jpg', '.jpeg']:
-        im = Image.open(image_path).convert("RGB")
+    ext = os.path.splitext(image_path)[1].lower()                       # . extension stored in ext
+    if ext not in ['.jpg', '.jpeg']:                                    
+        im = Image.open(image_path).convert("RGB")                      # PNGs may be stored in 'RGBA' or 'P' modes, but JPEGs require strictly RGB
         new_path = os.path.splitext(image_path)[0] + ".jpg"
         im.save(new_path, "JPEG")
         os.remove(image_path)
         return new_path
     return image_path
 
-# Fourier Transform
+
+# Channel Tranformations for Fourier Tranformation 
 def compress_channel(channel_data, keep_ratio=0.05):
     f_transform = np.fft.fft2(channel_data)
     f_shifted = np.fft.fftshift(f_transform)
@@ -37,14 +40,14 @@ def compress_channel(channel_data, keep_ratio=0.05):
     img_reconstructed = np.fft.ifft2(f_ishifted)
     return np.abs(img_reconstructed)
 
-
+# Fourier Transform
 def compress_image_fourier(image):
 
-    keep_ratio = 0.05  # Keep top 5% frequencies
+    keep_ratio = 0.05                                                   # Keep top 5% frequencies
     compressed_channels = []
     img_array = np.array(image)
 
-    for i in range(3):  # R, G, B
+    for i in range(3):  
         channel = img_array[:, :, i]
         compressed = compress_channel(channel, keep_ratio)
         compressed_channels.append(compressed)
@@ -55,6 +58,7 @@ def compress_image_fourier(image):
     return image
 
 
+# Principal Component Analysis
 def compress_image_pca(image, num_components=50):
 
     r, g, b = cv2.split(image)
@@ -74,6 +78,8 @@ def compress_image_pca(image, num_components=50):
 
     return decoded_img
 
+
+# Singular Value Decomposition
 def compress_image_svd(image, num_components=50):
     b, g, r = cv2.split(image)
 
@@ -91,27 +97,32 @@ def compress_image_svd(image, num_components=50):
 
     return compressed_image
 
+
+# Starting the App, leads to the upload page
 @app.route('/', methods=['GET', 'POST'])
 def upload_image():
     return render_template('upload.html')
 
+
+# Once the image is uploaded, the loading screen comes up while the backend is working to compress the image
 @app.route('/loading', methods=['POST'])
 def loading():
     file = request.files['image']
-    compression_level = int(request.form['compression_level'])
+    compression_level = int(request.form['compression_level'])          # Using Jinja2 to get access to the form input (compression level)
 
-    filename = f"uploaded_{uuid.uuid4().hex}.png"
+    filename = f"uploaded_{uuid.uuid4().hex}.png"                       # Assigns a unique identifier (hexadec) to the uploaded image : uploaded_uuid.png
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(image_path)
 
-    # Convert to JPG if not already
-    jpg_path = convert_to_jpg(image_path)
+    jpg_path = convert_to_jpg(image_path)                               # Convert to JPG if not already, this enables jpg compression (better than png)
 
-    session['compression_level'] = compression_level
+    session['compression_level'] = compression_level                    # The session object stores data across multiple page loads, so it stores data like a sort of global variable across instances
     session['image_path'] = jpg_path
 
     return render_template('loading.html')
 
+
+# Once the compression is complete, the image is displayed and an option is given to download it
 @app.route('/download_file')
 def download_file():
     image_path = session.get('image_path')
@@ -120,7 +131,7 @@ def download_file():
     if not image_path or not compression_level:
         return redirect(url_for('upload_image'))
 
-    image = cv2.imread(image_path)
+    image = cv2.imread(image_path)                                      # Accessing the uploaded image and passing it to PCA for compression
     compressed_image = compress_image_pca(image, num_components=compression_level)
 
     compressed_path = os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png')
@@ -128,10 +139,14 @@ def download_file():
 
     return render_template('download.html')
 
+
+# Downloading the compressed image
 @app.route('/serve_file')
 def serve_file():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'compressed.png')
     return send_file(file_path, as_attachment=True, download_name='compressed.jpg')
 
+
+# Starting point of the app , it leads to the '/' route
 if __name__ == '__main__':
     app.run(debug=True)
